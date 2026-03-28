@@ -10,6 +10,16 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddDbContext<BookDbContext>(option =>
 option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:4200")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -25,7 +35,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowLocalhost");
 app.UseAuthorization();
 
 app.MapControllers();

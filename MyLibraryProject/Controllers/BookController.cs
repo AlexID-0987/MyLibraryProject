@@ -8,6 +8,7 @@ namespace MyLibraryProject.Controllers
     public class BookController : Controller
     {
         private readonly BookDbContext _context;
+        private readonly IGetBooks _getBooks= new RepoBooks();
 
         public BookController(BookDbContext context)
         {
@@ -17,7 +18,7 @@ namespace MyLibraryProject.Controllers
         [HttpGet]
         public ActionResult <IEnumerable<Model.Book>> GetBooks()
         {
-            return _context.Books.ToList();
+            return _getBooks.GetBooks(_context).ToList();
         }
     }
 }
