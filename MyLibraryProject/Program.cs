@@ -4,7 +4,7 @@ using MyLibraryProject.Model;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.WebHost.UseUrls("http://0.0.0.0:8080");
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -15,7 +15,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowLocalhost",
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200")
+            policy.AllowAnyOrigin()
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -27,11 +27,24 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-using (var scope = app.Services.CreateScope())
+var retries = 10;
+while (retries > 0)
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<BookDbContext>();
-    DataBaseInit.Initialize(context);
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<BookDbContext>();
+
+        DataBaseInit.Initialize(context);
+        break;
+    }
+    catch (Exception ex)
+    {
+        retries--;
+        Console.WriteLine($"DB not ready... retries left: {retries}");
+        Thread.Sleep(3000);
+    }
 }
 
 app.UseHttpsRedirection();
